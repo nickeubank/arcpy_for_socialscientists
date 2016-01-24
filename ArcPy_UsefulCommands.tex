@@ -1,0 +1,164 @@
+\documentclass[12pt]{article} 
+\usepackage{amsfonts, amsmath, amssymb} 
+\usepackage{dcolumn, multirow} 
+\usepackage{setspace} 
+\usepackage{epsfig, subfigure, subfloat, graphicx}
+\usepackage{tabularx} 
+\usepackage{anysize, indentfirst, setspace} 
+\usepackage{verbatim, rotating, paralist}
+\usepackage{latexsym} 
+\usepackage{amsthm} 
+\usepackage{fullpage} 
+\usepackage{longtable} 
+\usepackage{graphicx} 
+\usepackage{mathabx} 
+\usepackage{txfonts} 
+\usepackage{amsfonts} 
+\usepackage{parskip} 
+\usepackage{stmaryrd} 
+\usepackage{mathrsfs} 
+\usepackage{dsfont} 
+\usepackage{comment} 
+\usepackage{url} 
+\usepackage{rotating} 
+\usepackage{appendix}
+\usepackage{natbib} 
+\usepackage{tablefootnote}
+\usepackage{hyperref}
+
+
+
+\usepackage[margin=2.5cm]{geometry}
+
+\title{Useful ArcPy Commands and Code Snippets}
+\author{Nick Eubank}
+\date{\today}
+
+
+\begin{document} 
+\maketitle
+
+\subsection*{Individual Functions}
+
+\subsubsection*{Data Manipulation}
+\begin{itemize}
+	\item Create Geodatabase: CreatePersonalGDB\_management() 
+	\item Delete things: Delete\_management()
+	\item Import GPS Points: MakeXYEventLayer\_management() \\
+	\emph{Creates a Layer -- frequently need to then copy into featureclass for storage}
+	\item Copy Layer to FeatureClass / Move Featureclass: CopyFeatures\_management()
+	\item Copy Raster to FeatureClass: CopyRaster\_management()
+	\item Export Attribute Table:  ExportXYv\_stats() \\
+	\emph{Note: Will not label columns, and will include some leading columns, so be careful with use!} 
+	\item Create a layer from featureclass: MakeFeatureLayer\_management()	\\
+	\emph{Some tools only act on layers, and selections only work for layers}
+\end{itemize}
+
+\subsubsection*{Projections and Coordinate Systems}
+\begin{itemize}
+	\item Define Projection or Coordinate System: DefineProjection\_management() \\
+	\emph{This is for SETTING the coordinate system, not RE-PROJECTING into NEW coordinate system}
+	\item Re-Project to New Projection or Coordinate System: Project\_management()
+\end{itemize}
+
+\subsubsection*{Working with Fields}
+\begin{itemize}
+	\item Add a field (prior to calculating): AddField\_management()
+	\item Calculate Field: CalculateField\_management()
+	\item Delete Field: DeleteField\_management()
+\end{itemize}
+	
+\subsubsection*{Selections}
+Selections can be applied to either one of the two types of layers in ArcPy (see Tutorial, Section 8 for a discussion of layers). 	\emph{Selections can only be applied to layers, not feature classes!}
+\begin{itemize}
+	\item Create a Feature Layer from featureclass: MakeFeatureLayer\_management()	\\
+	\item Manipulate Selections in Layer: SelectLayerByAttribute\_management() \\
+	\emph{Note this is a multifaceted function -- the second argument in function allows you to specify whether you're creating new selection, clearing selection, subsetting, etc.}
+	\item Manipulate Selections by Location: SelectLayerByLocation\_management() 
+\end{itemize}
+
+\subsubsection*{Cartography}
+You can also use ArcPy to manipulate Map Documents (ending in .mxd). This is useful for cartography, and has it's own set of tools. 
+
+When working with cartography, one often also works with selections. However, this is an area I don't know well, so this is admittedly thin!
+\begin{itemize}
+	\item Create Map Document Variable: mapping.MapDocument(``file.mxd'') \\
+	\emph{e.g. mxd = arcpy.mapping.MapDocument(``file.mxd'')}
+	\item Set the extent of the Map Document (i.e. zoom) to extent of selected elements of a layer (called myLayer): 
+	\begin{quotation}
+	\begin{verbatim}
+		lyrExtent=myLayer.getSelectedExtent()
+		df.extent=lyrExtent
+	\end{verbatim}		
+	\end{quotation}
+\end{itemize} 
+
+
+\section*{Idioms and Code Snippets}
+\subsection*{Create New Database, Delete Old if Present, Report Back}
+\begin{verbatim}
+# Target geodatabase name
+Output="NewDatabaseName.gdb"
+# Home Folder
+HomeFolder ="Z:/Documents/VAM"
+
+try:
+    arcpy.Delete_management(Output,HomeFolder)
+    print "Deleted Old Database"
+except:
+    # Output.gdb did not exist, pass
+    print "Did not delete"
+    pass
+arcpy.CreateFileGDB_management(HomeFolder, Output, "CURRENT")
+print "Created New Database"	
+\end{verbatim}
+\pagebreak
+\subsection*{Cartography: Zoom to different constituencies and print PDFs of each constituency}
+\begin{verbatim}
+
+mxd = arcpy.mapping.MapDocument("pc_maps_forexport.mxd")
+mxd.author="Nick Eubank"
+#mxd.save()
+
+# Now I want to draw out the first item in the current data frame -- 
+so call for list then subscript for item "0" Of course I only have one 
+data frame, but this precludes the possibility I'll get back a list 
+instead of a single item.
+
+df=arcpy.mapping.ListDataFrames(mxd, "Layers")[0]
+
+# Call list of layers. If you add a [0] to the end, you get a single 
+object. I just pull out the objects in the next few lines. My first 
+layer (lyrList[0]) is the layer of PC locations. The second (lyrList[1]) 
+is a constituency map.
+lyrList=arcpy.mapping.ListLayers(mxd)
+print lyrList
+pcsLayer=lyrList[0]
+constsLayer=lyrList[1]
+
+# List of target constituencies
+
+consts=["1206",  "1207",  "1303",  "2105",  "2201",  "2301",  "2304",  
+"2305",  "2408",  "2505",  "3104",  "3304",  "3305",  "4102"]
+
+for item in consts:
+    selectorString="[const_no]= "
+    print item
+    arcpy.SelectLayerByAttribute_management(pcsLayer, "NEW_SELECTION", 
+		selectorString+item)
+    print "Selections Made"
+    lyrExtent=pcsLayer.getSelectedExtent()
+    print "LyrExtent Run"
+    df.extent=lyrExtent
+    print "DF extent set"
+    fileNameA="Z:/Dropbox/Elections_Sierra_Leone/pc_maps/map_"
+    fileNameB=".pdf"
+    # Now clear selections so cleaner looking
+    arcpy.SelectLayerByAttribute_management(pcsLayer, "CLEAR_SELECTION")
+    arcpy.mapping.ExportToPDF(mxd, fileNameA + item + fileNameB)
+    print "Exported"
+
+print "Total Success!"
+
+\end{verbatim}
+\end{document}

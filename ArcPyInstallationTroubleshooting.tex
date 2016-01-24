@@ -1,0 +1,64 @@
+\documentclass[12pt]{article} 
+\usepackage{amsfonts, amsmath, amssymb} 
+\usepackage{dcolumn, multirow} 
+\usepackage{setspace} 
+\usepackage{epsfig, subfigure, subfloat, graphicx}
+\usepackage{tabularx} 
+\usepackage{anysize, indentfirst, setspace} 
+\usepackage{verbatim, rotating, paralist}
+\usepackage{latexsym} 
+\usepackage{amsthm} 
+\usepackage{fullpage} 
+\usepackage{longtable} 
+\usepackage{graphicx} 
+\usepackage{mathabx} 
+\usepackage{txfonts} 
+\usepackage{amsfonts} 
+\usepackage{parskip} 
+\usepackage{stmaryrd} 
+\usepackage{mathrsfs} 
+\usepackage{dsfont} 
+\usepackage{comment} 
+\usepackage{url} 
+\usepackage{rotating} 
+\usepackage{appendix}
+\usepackage{natbib} 
+\usepackage{tablefootnote}
+\usepackage{hyperref}
+
+
+
+\usepackage[margin=2.5cm]{geometry}
+
+\title{ArcPy Installation Troubleshooting}
+\author{Nick Eubank}
+\date{\today}
+
+
+\begin{document} 
+\maketitle
+
+If you ran the ArcPy test file and got an error, you're facing one of two problems. Either (a) you don't have ArcPy installed, or (b) you have more than one python installation and the program you're using to run Python files (your IDE) is using the wrong installation. 
+
+\subsection*{Checking ArcPy Installation}
+To see if ArcPy is installed, look for the following folder on your C drive:
+
+\begin{verbatim}
+	C:\\Python27\\ArcGIS10.1
+\end{verbatim}
+(The exact version of Arc GIS may vary).
+
+\subsection*{If you find the folder...}
+Then you likely have multiple installations. Check for one of two things:
+\begin{enumerate}
+	\item Another folder in
+	\begin{verbatim} C:\\Python27 \end{verbatim} 
+		besides \begin{verbatim} C:\\Python27\\ArcGIS10.1\end{verbatim}.
+	\item Another Python folder in the C drive, like \begin{verbatim} C:\\Python30 \end{verbatim}
+\end{enumerate}
+If either of these is the case, you have multiple Python installations. To fix this, you can either (a) erase the extra python installation, or (b) figure out how to change the ``interpreter'' your IDE is using (``interpreter'' is the term for the specific installation of Python your IDE is using when it runs files). How do do this will vary with IDE, but if you're using PyScripter, then you can go to the menu option ``Tools$>$Python Path'' and make sure that the ArcGIS folder in Python27 is included in the list of paths. 
+
+\subsubsection*{If you don't find the folder...}
+Then ArcPy was never installed, and I'm afraid you'll need to re-install ArcGIS. Sorry!
+
+\end{document}
